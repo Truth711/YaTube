@@ -140,4 +140,3 @@ class CommentFormTests(TestCase):
             author=CommentFormTests.author,
             text='Тестовый комментарий 1',
         ).exists())
-

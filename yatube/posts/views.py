@@ -6,7 +6,6 @@ from .models import Post, Group, User, Follow
 from .forms import PostForm, CommentForm
 
 
-
 PAGINATOR_AMOUNT = 10
 
 

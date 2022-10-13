@@ -211,9 +211,9 @@ class PostPagesTests(TestCase):
     def test_comment_appears_on_pages(self):
         """Новый комментарий появляется на странице поста."""
         response = self.authorized_client.get(reverse(
-                'posts:post_detail',
-                kwargs={'post_id': PostPagesTests.post.id}
-            ))
+            'posts:post_detail',
+            kwargs={'post_id': PostPagesTests.post.id}
+        ))
         self.assertEqual(
             len(response.context['comments']), EXPECTED_COMMENTS_NUM
         )
