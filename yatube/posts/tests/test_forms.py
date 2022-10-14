@@ -137,6 +137,7 @@ class CommentFormTests(TestCase):
             kwargs={'post_id': CommentFormTests.post.id}
         ))
         self.assertTrue(self.post.comments.filter(
+            post=CommentFormTests.post,
             author=CommentFormTests.author,
             text='Тестовый комментарий 1',
         ).exists())

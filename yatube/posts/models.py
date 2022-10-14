@@ -13,6 +13,10 @@ class Group(models.Model):
     def __str__(self):
         return self.title
 
+    class Meta:
+        verbose_name = 'Группа'
+        verbose_name_plural = 'Группы'
+
 
 class Post(models.Model):
     text = models.TextField(
@@ -75,6 +79,10 @@ class Comment(models.Model):
         auto_now_add=True,
     )
 
+    class Meta:
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'
+
 
 class Follow(models.Model):
     user = models.ForeignKey(
@@ -89,3 +97,7 @@ class Follow(models.Model):
         related_name='following',
         verbose_name='Подписка',
     )
+
+    class Meta:
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'

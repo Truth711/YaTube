@@ -93,11 +93,26 @@ class PostURLTests(TestCase):
             f'/posts/{self.post.id}/': 'posts/post_detail.html',
             '/create/': 'posts/create_post.html',
             f'/posts/{self.post.id}/edit/': 'posts/create_post.html',
+            '/follow/': 'posts/follow.html',
         }
         for url, template in url_templates_names.items():
             with self.subTest(url=url):
                 response = self.author.get(url)
                 self.assertTemplateUsed(response, template)
+
+    def test_add_comment_url_exists_at_desired_location_authorized(self):
+        """Страница posts/<int:post_id>/comment/ доступна
+        авторизованному пользователю.
+        """
+        form_data = {'text': 'Тестовый комментарий 1', }
+        response = self.guest_client.post(
+            reverse(
+                'posts:add_comment',
+                kwargs={'post_id': PostURLTests.post.id}
+            ),
+            data=form_data,
+        )
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
 
     def test_add_comment_url_redirect_anonymous_on_login(self):
         """Страница posts/<int:post_id>/comment/ перенаправит
@@ -113,16 +128,35 @@ class PostURLTests(TestCase):
         )
         self.assertRedirects(response, '/auth/login/?next=/posts/1/comment/')
 
-    def test_add_comment_url_exists_at_desired_location_authorized(self):
-        """Страница posts/<int:post_id>/comment/ доступна
-        авторизованному пользователю.
+    def test_login_required_urls_not_available_for_anonymous(self):
+        """Страницы comment, follow_index, follow, unfollow недоступны
+        для неавторизованного пользователя.
         """
-        form_data = {'text': 'Тестовый комментарий 1', }
-        response = self.guest_client.post(
-            reverse(
-                'posts:add_comment',
-                kwargs={'post_id': PostURLTests.post.id}
-            ),
-            data=form_data,
-        )
-        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        page_list = [
+            f'/posts/{self.post.id}/comment/',
+            '/follow/',
+            f'/profile/{PostURLTests.user.username}/follow/',
+            f'/profile/{PostURLTests.user.username}/unfollow/',
+        ]
+        for page in page_list:
+            with self.subTest(page=page):
+                response = self.guest_client.get(page)
+                self.assertNotEqual(response.status_code, HTTPStatus.OK)
+
+    def test_login_required_urls_redirects_anonymous_on_login(self):
+        """Страницы comment, follow_index, follow, unfollow перенаправляют
+        неавторизованного пользователя на страницу логина.
+        """
+        page_list = [
+            f'/posts/{self.post.id}/comment/',
+            '/follow/',
+            f'/profile/{PostURLTests.user.username}/follow/',
+            f'/profile/{PostURLTests.user.username}/unfollow/',
+        ]
+        for page in page_list:
+            with self.subTest(page=page):
+                response = self.guest_client.get(page)
+                self.assertRedirects(
+                    response,
+                    f'/auth/login/?next={page}'
+                )

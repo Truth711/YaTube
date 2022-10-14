@@ -248,9 +248,9 @@ class PostPagesTests(TestCase):
             reverse('posts:index')).content
         self.assertNotEqual(response3, response1)
 
-    def test_follow_and_unfollow_works_correct_for_authorized(self):
+    def test_follow_works_correct_for_authorized(self):
         """Авторизованный пользователь может подписаться на
-        другого пользователя и отписаться от него.
+        другого пользователя.
         """
         self.another_authorized_client.get(reverse(
             'posts:profile_follow',
@@ -258,6 +258,15 @@ class PostPagesTests(TestCase):
         )
         self.assertTrue(
             self.another_user.follower.filter(author=PostPagesTests.user))
+
+    def test_unfollow_works_correct_for_authorized(self):
+        """Авторизованный пользователь может отписаться от
+        другого пользователя.
+        """
+        self.another_authorized_client.get(reverse(
+            'posts:profile_follow',
+            kwargs={'username': PostPagesTests.user.username})
+        )
         self.another_authorized_client.get(reverse(
             'posts:profile_unfollow',
             kwargs={'username': PostPagesTests.user.username})
