@@ -9,7 +9,7 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django import forms
 
-from ..models import Post, Group
+from ..models import Post, Group, Follow
 
 User = get_user_model()
 
@@ -263,9 +263,9 @@ class PostPagesTests(TestCase):
         """Авторизованный пользователь может отписаться от
         другого пользователя.
         """
-        self.another_authorized_client.get(reverse(
-            'posts:profile_follow',
-            kwargs={'username': PostPagesTests.user.username})
+        Follow.objects.create(
+            user=self.another_user,
+            author=PostPagesTests.user
         )
         self.another_authorized_client.get(reverse(
             'posts:profile_unfollow',
@@ -278,18 +278,18 @@ class PostPagesTests(TestCase):
         """Новая запись пользователя появляется в ленте тех,
         кто на него подписан и не появляется в ленте тех, кто не подписан.
         """
-        self.another_authorized_client.get(reverse(
-            'posts:profile_follow',
-            kwargs={'username': PostPagesTests.user.username})
+        Follow.objects.create(
+            user=self.another_user,
+            author=PostPagesTests.user
         )
         response1 = self.another_authorized_client.get(reverse(
             'posts:follow_index',
         ))
         self.assertIn(PostPagesTests.post, response1.context['page_obj'])
-        self.another_authorized_client.get(reverse(
-            'posts:profile_unfollow',
-            kwargs={'username': PostPagesTests.user.username})
-        )
+        Follow.objects.get(
+            user=self.another_user,
+            author=PostPagesTests.user
+        ).delete()
         response2 = self.another_authorized_client.get(reverse(
             'posts:follow_index',
         ))

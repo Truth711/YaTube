@@ -105,7 +105,7 @@ class PostURLTests(TestCase):
         авторизованному пользователю.
         """
         form_data = {'text': 'Тестовый комментарий 1', }
-        response = self.guest_client.post(
+        response = self.authorized_client.post(
             reverse(
                 'posts:add_comment',
                 kwargs={'post_id': PostURLTests.post.id}

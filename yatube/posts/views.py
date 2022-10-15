@@ -5,7 +5,6 @@ from django.views.decorators.cache import cache_page
 from .models import Post, Group, User, Follow
 from .forms import PostForm, CommentForm
 
-
 PAGINATOR_AMOUNT = 10
 
 
@@ -20,7 +19,7 @@ def paginator(request, post_list, amount):
 @cache_page(20, key_prefix='index_page')
 def index(request):
 
-    post_list = Post.objects.all()
+    post_list = Post.objects.select_related('author', 'group').all()
     page_obj = paginator(request, post_list, PAGINATOR_AMOUNT)
     context = {
         'page_obj': page_obj,
@@ -31,7 +30,7 @@ def index(request):
 def group_posts(request, slug):
 
     group = get_object_or_404(Group, slug=slug)
-    post_list = group.posts.all()
+    post_list = group.posts.select_related('author', 'group').all()
     page_obj = paginator(request, post_list, PAGINATOR_AMOUNT)
     context = {
         'group': group,
@@ -43,7 +42,7 @@ def group_posts(request, slug):
 def profile(request, username):
 
     author = get_object_or_404(User, username=username)
-    post_list = author.posts.all()
+    post_list = author.posts.select_related('author', 'group').all()
     page_obj = paginator(request, post_list, PAGINATOR_AMOUNT)
     following = (request.user.is_authenticated and Follow.objects.filter(
         user=request.user,
@@ -58,12 +57,8 @@ def profile(request, username):
 
 
 def post_detail(request, post_id):
-
     post = get_object_or_404(Post, id=post_id)
     comments = post.comments.select_related('author').all()
-    # Стоит ли добавить select_related('author') в index, group_posts, profile?
-    # В шаблонах этих страниц используется post.author.get_full_name а в
-    # контексте передается только список постов.
     form = CommentForm()
     context = {
         'post': post,
@@ -124,9 +119,7 @@ def add_comment(request, post_id):
 
 @login_required
 def follow_index(request):
-    following_set = Follow.objects.filter(user=request.user)
-    author_set = [x.author for x in following_set]
-    post_list = Post.objects.filter(author__in=author_set)
+    post_list = Post.objects.filter(author__following__user=request.user)
     page_obj = paginator(request, post_list, PAGINATOR_AMOUNT)
     context = {
         'page_obj': page_obj,
